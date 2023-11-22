@@ -1,0 +1,24 @@
+@import '../../style/variables.scss';
+
+.char-page {
+    width: 110px;
+    height: 800px;
+    display: flex;
+    &__img {
+        width: 293px;
+        height: 293px;
+    }
+    &__info {
+        margin-left: 20px;
+    }
+    &__name {
+        width: 550px;
+        height: 29px;
+        font-size: 22px;
+    }
+    &__descr {
+        width: 550px;
+        height: 168px;
+        font-size: 18px;
+    }
+}
