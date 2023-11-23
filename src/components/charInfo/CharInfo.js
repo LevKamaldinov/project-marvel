@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-import Spinner from '../spinner/Spinners';
-import ErrorMessage from '../errorMessage/ErrorMessage';
+// эти три импорта больше не нужны, т.к. они вшиты в setContent
+// import Spinner from '../spinner/Spinners';
+// import ErrorMessage from '../errorMessage/ErrorMessage';
+// import Skeleton from '../skeleton/Skeleton'
 import useMarvelService from '../../services/MarvelService';
-import Skeleton from '../skeleton/Skeleton'
+import setContent from '../../utils/setContent';
 
 import './charInfo.scss';
 
@@ -16,7 +18,7 @@ const CharInfo = (props) => {
     // а уже когда пользователь будет кликать по списку героев, будет срабатывать обновление (или ошибка)
     // const [error, setError] = useState(false); 
 
-    const {loading, error, clearError, getCharacter} = useMarvelService();
+    const {loading, error, clearError, process, setProcess, getCharacter} = useMarvelService();
     
     // этот хук срабатывает при первой загрузке страницы, чтобы загрузились данные по умолчанию
     useEffect(() => {
@@ -41,6 +43,7 @@ const CharInfo = (props) => {
         // onCharLoading(); // убираем благодаря useMarvelService
         getCharacter(charId)
             .then(onCharLoaded)
+            .then(() => setProcess('confirmed')) // процесс переходит в состояние подтверждённого (потому что получение данных от сервера сработало успешно)
             // .catch(onError); // убираем благодаря useMarvelService
     }
 
@@ -64,17 +67,15 @@ const CharInfo = (props) => {
     //     setError(true);
     // }
 
-    const skeleton = char || loading || error ? null : <Skeleton></Skeleton>; // если нет ошибки, загрузки или полученных данных о персонаже, т.е. при первой загрузке страницы, будет подгружен скелетон
-    const errorMessage = error ? <ErrorMessage></ErrorMessage> : null; 
-    const spinner = loading ? <Spinner></Spinner> : null; 
-    const content = (!error && !loading && char) ? <View char={char}></View> : null;
+    // т.к. мы используем setContent, это больше не нужно
+    // const skeleton = char || loading || error ? null : <Skeleton></Skeleton>; // если нет ошибки, загрузки или полученных данных о персонаже, т.е. при первой загрузке страницы, будет подгружен скелетон
+    // const errorMessage = error ? <ErrorMessage></ErrorMessage> : null; 
+    // const spinner = loading ? <Spinner></Spinner> : null; 
+    // const content = (!error && !loading && char) ? <View char={char}></View> : null;
 
     return (
         <div className="char__info">
-            {skeleton}
-            {errorMessage}
-            {spinner}
-            {content}
+            {setContent(process, View, char)}
         </div>
     )
 }
@@ -159,8 +160,8 @@ const CharInfo = (props) => {
 // }
 
 // создадим компонент, кт будет отвечать только за вёрстку
-const View = ({char}) => {
-    const {name, description, thumbnail, homepage, wiki, comics} = char;
+const View = ({data}) => {
+    const {name, description, thumbnail, homepage, wiki, comics} = data;
     let comicsList = comics.map((item, i) => {
         return (
             <li key={i} className="char__comics-item">

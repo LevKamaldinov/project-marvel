@@ -7,6 +7,27 @@ import Spinner from '../spinner/Spinners';
 
 import './comicsList.scss';
 
+// вместо импорта setContent мы сами создаём такую же функцию, потому что у неё надо прописать немного другую логику
+const setContent = (process, Component, newItemLoading) => {
+    switch(process) {
+        case 'waiting':
+            return <Spinner/>; // если у состояния процесса значение ожидания, значит, ещё не был отправлен запрос на сервер и пока на сайте у компонента стоит спиннер загрузки
+            break;
+        case 'loading':
+            return newItemLoading ? <Component/> : <Spinner/>; // если у состояния процесса значение загрузки и при этом идёт первая загрузка персонажей, значит, запрос пока впервые отправлен на сервер, поэтому будет показываться компонент загрузки, 
+            // если будет не первая загрузка, а дозагрузка, показываться будет не спиннер загрузки, а ранее загруженные персонажи
+            break;
+        case 'confirmed':
+            return <Component/>; // если у состояния процесса значение подтверждено, значит, от сервера пришли данные, а не ошибка, тогда загружается полученный контент
+            break;
+        case 'error':
+            return <ErrorMessage/>; // если у состония процесса значение ошибки, значит, от сервера не пришли данные, а возникла ошибка, тогда показывается компонент с ошибкой
+            break;
+        default:
+            throw new Error('Unexpected process state');
+    }
+}
+
 const ComicsList = (props) => {
 
     const [comicsList, setComicsList] = useState([]);
@@ -14,7 +35,7 @@ const ComicsList = (props) => {
     const [newItemLoading, setNewItemLoading] = useState(false);
     const [offset, setOffset] = useState(210);
     const [comicsEnded, setCharEnded] = useState(false);
-    const {loading, error, getAllComics} = useMarvelService();
+    const {loading, error, process, setProcess, getAllComics} = useMarvelService();
 
     useEffect(() => { // мы можем написать useEffect здесь, до объявления стрелочной функции, потому что useEffect запускается после рендеринга, а к этому времени функция уже будет объявлена
         onRequest(offset, true);
@@ -26,6 +47,7 @@ const ComicsList = (props) => {
         initial ? setNewItemLoading(false) : setNewItemLoading(true);
         getAllComics(offset) // получаем только нужные и уже преобразованные данные о персонажах
             .then(onCharListLoaded) // обновляем стэйт char данными о персонажах
+            .then(() => setProcess('confirmed'));
     }
 
     // этот метод, в целом, отвечает за процесс загрузки списка персонажей
@@ -80,16 +102,16 @@ const ComicsList = (props) => {
         )
     }
 
-    const items = renderItems(comicsList);
+    // const items = renderItems(comicsList);
 
-    const errorMessage = error ? <ErrorMessage></ErrorMessage> : null; 
-    const spinner = loading && !newItemLoading ? <Spinner></Spinner> : null; 
+    // const errorMessage = error ? <ErrorMessage></ErrorMessage> : null; 
+    // const spinner = loading && !newItemLoading ? <Spinner></Spinner> : null; 
     
     return (
         <div className="comics__list">
-            {errorMessage}
-            {spinner}
-            {items}
+            {/* т.к. в аргументы setContent надо передавать компонент, а компонент это функция (сейчас всё на функциональных компонентах), возвращающая вёрстку, 
+            то вторым аргументом передадим коллбэк-функцию, которая по итогу будет вызывать вёрстку, таким образом мы заменяем items*/}
+            {setContent(process, () => renderItems(comicsList), newItemLoading)} 
             <button 
                 className="button button__main button__long"
                 disabled={newItemLoading}

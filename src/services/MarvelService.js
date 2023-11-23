@@ -3,7 +3,7 @@ import { useHttp } from "../hooks/http.hook";
 // это код новый, с переделкой под хуки и функциональный подход
 const useMarvelService = () => {
     // через деструктуризацию вытащим интересующие нас части useHttp
-    const {loading, request, error, clearError} = useHttp();
+    const {loading, request, error, clearError, process, setProcess} = useHttp();
     // т.к. запрос на сайт имеет одинаковые части, можно сократить url, введя переменные
     const _apiBase ='https://gateway.marvel.com:443/v1/public/';
     const _apiKey = 'apikey=677f4f151277ce2120c892cebbe0e1ba';
@@ -75,7 +75,19 @@ const useMarvelService = () => {
     }
 
     // этот хук будет возвращать состояния загрузки и ошибки, а также два метода по получению всех персонажей и только одного персонажа
-    return {loading, error, clearError, getAllCharacters, getCharacter, getAllComics, getComics, getChar}
+    // благодаря process удаляем loading и error
+    return {
+            // loading, 
+            // error, 
+            clearError, 
+            process,
+            setProcess,
+            getAllCharacters, 
+            getCharacter, 
+            getAllComics, 
+            getComics, 
+            getChar
+        }
 }
 
 // этот код старый, до переделки его в хуки

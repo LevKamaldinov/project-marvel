@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import Spinner from '../spinner/Spinners';
-import ErrorMessage from '../errorMessage/ErrorMessage';
+
+// эти два импорта больше не нужны, т.к. они вшиты в setContent
+// import Spinner from '../spinner/Spinners';
+// import ErrorMessage from '../errorMessage/ErrorMessage';
 import useMarvelService from '../../services/MarvelService';
+import setContent from '../../utils/setContent';
 
 import './randomChar.scss';
 import mjolnir from '../../resources/img/mjolnir.png';
@@ -14,7 +17,7 @@ const RandomChar = () => {
     // const [loading, setLoading] = useState(true);
     // const [error, setError] = useState(false);
     // выше мы импортировали наш хук с запросом на сервер, здесь его будем использовать
-    const {loading, error, getCharacter, clearError} = useMarvelService(); // вытаскиваем из вызова хука два состояния и метод, кт будет использоваться в этом компоненте
+    const {loading, error, getCharacter, clearError, process, setProcess} = useMarvelService(); // вытаскиваем из вызова хука два состояния и метод, кт будет использоваться в этом компоненте
 
     // пропишем метод, который правильным образом при первой загрузке страницы будет запускать наш компонент, не выдавая багов, как это было при запуске метода через Constructor
     useEffect(() => {
@@ -53,21 +56,21 @@ const RandomChar = () => {
         // useMarvelService // делаем запрос на сервер
         getCharacter(id) // получаем только нужные и уже преобразованные данные о персонаже
             .then(onCharLoaded) // обновляем стэйт char данными о персонаже
+            .then(() => setProcess('confirmed'));
             // код ниже можно убрать, потому что обработка ошибок предусмотрена ещё в useHttp, кт является основой для useMarvelService и его методов
             // .catch(onError) // если будет ошибка, высветится соответствующее сообщение
     }
 
+    // это больше не нужно благодаря setContent
     // чтобы не расписывать сложные выражения в вёрстке ниже, пропишем их тут, это хорошая практика
-    const errorMessage = error ? <ErrorMessage></ErrorMessage> : null; // если получена ошибка, этой переменной будет присвоен в качестве значения компонент с ошибкой, иначе null
-    const spinner = loading ? <Spinner></Spinner> : null; // если идёт загрузка, этой переменной будет присвоен в качестве значения компонент со спинером загрузки, иначе null
-    const content = (!error && !loading) ? <View char={char}></View> : null; // если нет загрузки и нет ошибки, будет показан контент с данными о персонаже, иначе null
+    // const errorMessage = error ? <ErrorMessage></ErrorMessage> : null; // если получена ошибка, этой переменной будет присвоен в качестве значения компонент с ошибкой, иначе null
+    // const spinner = loading ? <Spinner></Spinner> : null; // если идёт загрузка, этой переменной будет присвоен в качестве значения компонент со спинером загрузки, иначе null
+    // const content = (!error && !loading) ? <View char={char}></View> : null; // если нет загрузки и нет ошибки, будет показан контент с данными о персонаже, иначе null
 
     return (
         // если идёт загрузка, то в левой части будет крутиться спиннер, если закрузка завершена, то будут показываться данные о персонаже
         <div className="randomchar">
-            {errorMessage}
-            {spinner}
-            {content}
+            {setContent(process, View, char)}
             <div className="randomchar__static">
                 <p className="randomchar__title">
                     Random character for today!<br/>
@@ -176,8 +179,8 @@ const RandomChar = () => {
 // }
 
 // создадим отдельный компонент, который будет просто создавать вёрстку
-const View = ({char}) => {
-    const {name, description, thumbnail, homepage, wiki} = char;
+const View = ({data}) => {
+    const {name, description, thumbnail, homepage, wiki} = data;
     let thumnailUrl = thumbnail === `http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg`;
     let thumbnailStyle = thumnailUrl ? {objectFit: 'contain'} : null;
 

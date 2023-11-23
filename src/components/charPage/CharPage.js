@@ -3,16 +3,19 @@ import { Helmet } from 'react-helmet';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 
-import Spinner from '../spinner/Spinners';
-import ErrorMessage from '../errorMessage/ErrorMessage';
+// эти два импорта больше не нужны, т.к. они вшиты в setContent
+// import Spinner from '../spinner/Spinners';
+// import ErrorMessage from '../errorMessage/ErrorMessage';
 import useMarvelService from "../../services/MarvelService";
+import setContent from '../../utils/setContent';
+
 import './charPage.scss'
 
 const CharPage = () => {
 
     const {id} = useParams();
     const [char, setChar] = useState([]);
-    const {loading, error, clearError, getCharacter} = useMarvelService();
+    const {loading, error, clearError, getCharacter, process, setProcess} = useMarvelService();
 
     useEffect(() => {
         updateChar();
@@ -22,25 +25,24 @@ const CharPage = () => {
         clearError();
         getCharacter(id)
             .then(data => setChar(data))
+            .then(() => setProcess('confirmed'))
     }
 
-    const errorMessage = error ? <ErrorMessage/> : null; 
-    const spinner = loading ? <Spinner/> : null; 
-    const content = (!error && !loading && char) ? <View char={char}></View> : null;
+    // const errorMessage = error ? <ErrorMessage/> : null; 
+    // const spinner = loading ? <Spinner/> : null; 
+    // const content = (!error && !loading && char) ? <View char={char}></View> : null;
 
     return (
         <>
-            {errorMessage}
-            {spinner}
-            {content}
+            {setContent(process, View, char)}
         </>
     )
 }
 
 export default CharPage;
 
-const View = ({char}) => {
-    const {thumbnail, description, name} = char;
+const View = ({data}) => {
+    const {thumbnail, description, name} = data;
     return (
         <div className="char-page">
             <Helmet>

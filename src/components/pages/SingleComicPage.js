@@ -2,16 +2,19 @@ import { Helmet } from 'react-helmet';
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-import Spinner from '../spinner/Spinners';
-import ErrorMessage from '../errorMessage/ErrorMessage';
+// эти два импорта больше не нужны, т.к. они вшиты в setContent
+// import Spinner from '../spinner/Spinners';
+// import ErrorMessage from '../errorMessage/ErrorMessage';
 import useMarvelService from '../../services/MarvelService';
+import setContent from '../../utils/setContent';
+
 import './singleComicPage.scss';
 
 const SingleComicPage = () => {
     // хук useParams позволяет получить объект со значением того уникального куска пути, который есть у страницы, в нашем случае это id комикса
     const {id} = useParams();
     const [comic, setComic ] = useState(null);
-    const {loading, error, getComics, clearError} = useMarvelService();
+    const {loading, error, getComics, clearError, process, setProcess} = useMarvelService();
 
     // этот метод здесь нужен для того, чтобы, если пользователь вручную поменяет адрес на другой комикс, ему отрисовалась новая страница с этим комиксом
     useEffect(() => {
@@ -23,23 +26,22 @@ const SingleComicPage = () => {
         clearError();
         getComics(id)
             .then(comic => setComic(comic))
+            .then(() => setProcess('confirmed'))
     }
 
-    const errorMessage = error ? <ErrorMessage/> : null; 
-    const spinner = loading ? <Spinner/> : null; 
-    const content = (!error && !loading && comic) ? <View comic={comic}></View> : null;
+    // const errorMessage = error ? <ErrorMessage/> : null; 
+    // const spinner = loading ? <Spinner/> : null; 
+    // const content = (!error && !loading && comic) ? <View comic={comic}></View> : null;
 
     return (
         <>
-            {errorMessage}
-            {spinner}
-            {content}
+            {setContent(process, View, comic)}
         </>
     )
 }
 
-const View = ({comic}) => {
-    const {thumbnail, description, title, price, language, pageCount} = comic;
+const View = ({data}) => {
+    const {thumbnail, description, title, price, language, pageCount} = data;
     return (
         <div className="single-comic">
             <Helmet>
